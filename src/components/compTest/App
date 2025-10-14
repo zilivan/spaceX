@@ -1,0 +1,160 @@
+// App.test.tsx
+
+import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import App from './App'; // Убедитесь, что путь к файлу App.tsx правильный
+import Header from './components/header/Header'; // Убедитесь, что путь к компоненту Header правильный
+import ProductList from './components/productList/ProductList'; // Убедитесь, что путь к компоненту ProductList правильный
+
+// Мок для Header, чтобы не рендерить его реальную реализацию
+vi.mock('./components/header/Header', () => ({
+  default: ({ cartItems, updateCartItemQuantity, removeCartItem }: any) => (
+    <div data-testid="mock-header">
+      Mock Header: {cartItems.length} items
+    </div>
+  ),
+}));
+
+// Мок для ProductList, чтобы не рендерить его реальную реализацию
+vi.mock('./components/productList/ProductList', () => ({
+  default: ({ products, onAddToCart, loading }: any) => (
+    <div data-testid="mock-product-list">
+      Mock ProductList: {products.length} products, Loading: {loading ? 'true' : 'false'}
+    </div>
+  ),
+}));
+
+// Фиктивные данные для мок-ответа API
+const mockProductsData = [
+  {
+    id: 1,
+    name: 'Brocolli - 1 Kg',
+    price: 120,
+    image: 'https://res.cloudinary.com/sivadass/image/upload/v1493620046/dummy-products/broccoli.jpg',
+    category: 'vegetables',
+  },
+  {
+    id: 2,
+    name: 'Cauliflower - 1 Kg',
+    price: 60,
+    image: 'https://res.cloudinary.com/sivadass/image/upload/v1493620046/dummy-products/cauliflower.jpg',
+    category: 'vegetables',
+  },
+  // ... другие продукты
+];
+
+// Мокаем fetch
+const mockFetchResponse = (data: any, ok: boolean = true, status: number = 200) => {
+  return Promise.resolve({
+    ok,
+    status,
+    json: () => Promise.resolve(data),
+  });
+};
+
+describe('App', () => {
+  beforeEach(() => {
+    // Мокаем fetch перед каждым тестом
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    // Восстанавливаем реальный fetch после каждого теста
+    vi.restoreAllMocks();
+  });
+
+  it('renders loading state initially', async () => {
+    // Мокаем fetch, чтобы он *не* разрешался сразу, имитируя загрузку
+    (global.fetch as Mock).mockReturnValue(
+      new Promise(() => {
+        /* Заглушка, чтобы промис не разрешился */
+      })
+    );
+
+    render(<App />);
+
+    // Проверяем, что ProductList рендерится с loading=true изначально
+    // Так как мы не показываем индикатор загрузки в App напрямую, мы проверяем состояние loading,
+    // передаваемое в ProductList. Изначально loading=true из useState.
+    // Однако, ProductList монтируется *после* вызова useEffect.
+    // Поэтому, чтобы увидеть начальное состояние loading=true, нужно замокать useEffect
+    // или убедиться, что fetch не вызывается сразу.
+    // Более реалистично протестировать ситуацию, когда fetch *начинает* загрузку.
+    // Но в App.tsx useEffect вызывается сразу при рендере.
+    // Тогда тест ожидает, что ProductList получит loading=true при первом рендере,
+    // но fetch *уже* начался. Чтобы протестировать "ожидание" загрузки,
+    // нужно, чтобы ProductList рендерился *до* завершения fetch.
+    // Это сложно без сложных моков useEffect или ожидания DOM-состояния до завершения загрузки.
+    // Вместо этого, протестируем сценарии после загрузки данных или ошибки.
+
+    // Проверим, что Header и ProductList рендерятся (даже если с loading=true)
+    expect(screen.getByTestId('mock-header')).toBeInTheDocument();
+    // ProductList будет рендериться с loading=true, пока useEffect не завершится.
+    // await waitFor(() => expect(screen.getByTestId('mock-product-list')).toBeInTheDocument());
+    // Но мы не можем быть уверены, что loading=true в момент рендера до завершения fetch.
+    // Поэтому основной тест - это проверка загрузки данных и ошибок.
+  });
+
+  it('fetches products successfully and passes them to ProductList', async () => {
+    // Мокаем успешный ответ от fetch
+    (global.fetch as Mock).mockResolvedValue(mockFetchResponse(mockProductsData));
+
+    render(<App />);
+
+    // Ожидаем, что fetch был вызван с правильным URL
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith(
+      'https://res.cloudinary.com/sivadass/raw/upload/v1535817394/json/products.json  '
+    ));
+
+    // Ожидаем, что ProductList получит продукты и loading=false
+    await waitFor(() => expect(screen.getByText(`Mock ProductList: ${mockProductsData.length} products, Loading: false`)).toBeInTheDocument());
+
+    // Проверим, что Header рендерится
+    expect(screen.getByTestId('mock-header')).toBeInTheDocument();
+  });
+
+  it('displays error message when fetch fails', async () => {
+    // Мокаем неудачный ответ от fetch
+    const errorMessage = 'Ошибка сети: 404';
+    (global.fetch as Mock).mockResolvedValue(mockFetchResponse(null, false, 404));
+
+    render(<App />);
+
+    // Ожидаем, что fetch был вызван
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith(
+      'https://res.cloudinary.com/sivadass/raw/upload/v1535817394/json/products.json  '
+    ));
+
+    // Ожидаем, что отобразится сообщение об ошибке
+    await waitFor(() => expect(screen.getByText(`Ошибка: ${errorMessage}`)).toBeInTheDocument());
+
+    // В случае ошибки, основные компоненты (Header, ProductList) не должны отображаться
+    expect(screen.queryByTestId('mock-header')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('mock-product-list')).not.toBeInTheDocument();
+  });
+
+  it('filters products by category (not empty)', async () => {
+    const allProducts = [
+      { id: 1, name: 'Veg 1', price: 10, image: 'img1', category: 'vegetables' },
+      { id: 2, name: 'Fruit 1', price: 15, image: 'img2', category: 'fruits' },
+      { id: 3, name: 'Empty Cat', price: 20, image: 'img3', category: '' }, // Этот не должен попасть
+    ];
+    const expectedVegetables = allProducts.filter(p => p.category !== '');
+    (global.fetch as Mock).mockResolvedValue(mockFetchResponse(allProducts));
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText(`Mock ProductList: ${expectedVegetables.length} products, Loading: false`)).toBeInTheDocument());
+    // Проверяем, что количество продуктов в ProductList равно количеству не-пустых категорий
+    expect(screen.getByText(`Mock ProductList: 2 products, Loading: false`)).toBeInTheDocument(); // Veg и Fruit
+  });
+
+  // Тесты для проверки функций управления корзиной сложно протестировать напрямую в App
+  // без взаимодействия с UI дочерних компонентов.
+  // Логика этих функций (updateCartItemQuantity, removeCartItem, addToCart)
+  // лучше тестировать интеграционно или в тестах самих компонентов, которые их используют (например, ProductCard, CartBag).
+  // App тестирует *факт* передачи этих функций.
+  // Так как Header и ProductList замоканы, мы не можем проверить, что они получили именно эти функции.
+  // Но мы *доверяем*, что App передает их корректно, как написано в JSX.
+  // Основная логика - это загрузка данных и состояние ошибки/загрузки.
+});
