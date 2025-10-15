@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import CartBag from './CartBag'; // Убедитесь, что путь к файлу CartBag.tsx правильный
+import CartBag from './SpaceCartMadal'; // Убедитесь, что путь к файлу CartBag.tsx правильный
 import type { CartItem } from '../../types/SpaceCartMadal'; // Убедитесь, что путь к типу правильный
 import { MantineProvider } from '@mantine/core';
 

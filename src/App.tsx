@@ -86,8 +86,8 @@ function App() {
     <>
       <AppShell header={{ height: 50 }}>
         withBorder={false}
-        <AppShell.Header>
-           <Title order={2}>SpaceX Launches 2020 </Title>
+        <AppShell.Header >
+           <Title ta="center" order={2}>SpaceX Launches 2020 </Title>
         </AppShell.Header>
         <AppShell.Main className="main">
          

@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 
 import emptyCartImage from '../../assets/cart_empty.png';
-import CartBag from '../cardbag/CartBag';
+import CartBag from '../spaceCartMadal/SpaceCartMadal';
 import type { CartItem } from '../../types/SpaceCartMadal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCartShopping } from '@fortawesome/free-solid-svg-icons';
