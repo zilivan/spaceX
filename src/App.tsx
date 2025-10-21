@@ -1,105 +1,83 @@
-import { useState, useEffect } from 'react';
+import { useReducer, useEffect } from 'react';
 import './App.css';
-
-import type { SpaceCartMadal } from './types/SpaceCartMadal';
-import type { SpaceCard } from './types/SpaceCard';
-import SpaceCardList from './components/productList/SpaceCardList';
+import type { SpaceCardType } from './types/SpaceCard';
+import SpaceCardList from './components/spaseCardList/SpaceCardList';
 import { AppShell, Title } from '@mantine/core';
+
+interface SpaceCardsState {
+  data: SpaceCardType[];
+  loading: boolean;
+  error: string | null;
+}
+
+type SpaceCardsAction =
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; payload: SpaceCardType[] }
+  | { type: 'FETCH_ERROR'; payload: string };
+
+const spaceCardsReducer = (
+  state: SpaceCardsState,
+  action: SpaceCardsAction
+): SpaceCardsState => {
+  switch (action.type) {
+    case 'FETCH_START':
+      return { ...state, loading: true, error: null };
+    case 'FETCH_SUCCESS':
+      return { ...state, loading: false, data: action.payload, error: null };
+    case 'FETCH_ERROR':
+      return { ...state, loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
 function App() {
-  const [cartItems, setCartItems] = useState<SpaceCartMadal[]>([]);
-
-  const [spaceCards, setSpaceCards] = useState<SpaceCard[]>([]);
-
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const [error, setError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(spaceCardsReducer, {
+    data: [],
+    loading: true,
+    error: null,
+  });
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchSpaceLaunches = async () => {
+      dispatch({ type: 'FETCH_START' });
+
       try {
-        const response = await fetch(
-          'https://api.spacexdata.com/v3/launches'
-        );
+        const response = await fetch('https://api.spacexdata.com/v3/launches');
         if (!response.ok) {
           throw new Error(`Ошибка сети: ${response.status}`);
         }
-        const data: SpaceCard[] = await response.json();
+        const data: SpaceCardType[] = await response.json();
+        const filteredData = data.filter(space => space.flight_number <= 20);
 
-        const spaces = data.filter( space => space.flight_number < 10);
- 
-        setSpaceCards(spaces);
-       console.log(spaces);
+        dispatch({ type: 'FETCH_SUCCESS', payload: filteredData });
+        // console.log(filteredData);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Произошла неизвестная ошибка'
-        );
-        console.error('Ошибка при загрузке продуктов:', err);
-      } finally {
-        setLoading(false);
+        const errorMessage =
+          err instanceof Error ? err.message : 'Произошла неизвестная ошибка';
+        dispatch({ type: 'FETCH_ERROR', payload: errorMessage });
+        //console.error('Ошибка при загрузке данных:', err);
       }
     };
 
-    fetchProducts();
+    fetchSpaceLaunches();
   }, []);
 
- /* const updateCartItemQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeCartItem(id);
-      return;
-    }
-
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
-
-  const removeCartItem = (id: number) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== id));
-  };
-
-  const addToCart = (product: Product, quantity: number) => {
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
-      if (existingItem) {
-        return prevItems.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      } else {
-        return [...prevItems, { ...product, quantity }];
-      }
-    });
-  };
-
-  if (loading) {
-    return <div>Загрузка продуктов...</div>;
-  }*/
-
-  if (error) {
-    return <div>Ошибка: {error}</div>;
+  if (state.error) {
+    return <div>Ошибка: {state.error}</div>;
   }
 
   return (
-    <>
-      <AppShell header={{ height: 50 }}>
-        withBorder={false}
-        <AppShell.Header >
-           <Title ta="center" order={2}>SpaceX Launches 2020 </Title>
-        </AppShell.Header>
-        <AppShell.Main className="main">
-         
-
-          <SpaceCardList
-            spaceCards={spaceCards}
-            
-            loading={loading}
-          />
-        </AppShell.Main>
-      </AppShell>
-    </>
+    <AppShell header={{ height: 50 }}>
+      <AppShell.Header>
+        <Title ta="center" order={2}>
+          SpaceX Launches 2020
+        </Title>
+      </AppShell.Header>
+      <AppShell.Main className="main">
+        <SpaceCardList spaceCards={state.data} loading={state.loading} />
+      </AppShell.Main>
+    </AppShell>
   );
 }
 

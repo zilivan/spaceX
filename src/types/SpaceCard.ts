@@ -1,8 +1,10 @@
-export interface SpaceCard {
+export interface SpaceCardType {
   flight_number: number;
-  links: any;
+  links: {
+    mission_patch_small: string | null;
+  };
   mission_name: string;
-  rocket: any;
- 
+  rocket: {
+    rocket_name: string;
+  };
 }
-

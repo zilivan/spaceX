@@ -3,7 +3,7 @@ import { faBars } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Card, Group, Box } from '@mantine/core';
 
-const ProductCartSkeleton: React.FC = () => {
+const SpaceCartSkeleton: React.FC = () => {
   return (
     <Card
       shadow="xs"
@@ -42,4 +42,4 @@ const ProductCartSkeleton: React.FC = () => {
   );
 };
 
-export default ProductCartSkeleton;
+export default SpaceCartSkeleton;

@@ -1,5 +1,5 @@
-import type { SpaceCard } from './SpaceCard';
+import type { SpaceCardType } from './SpaceCard';
 
-export interface SpaceCartMadal extends SpaceCard {
-  details: string;
+export interface SpaceCartMadalType extends SpaceCardType {
+  details?: string;
 }

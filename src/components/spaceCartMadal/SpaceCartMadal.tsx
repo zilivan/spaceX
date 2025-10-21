@@ -1,55 +1,30 @@
-// LaunchDetailModal.tsx
-import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Button, Stack, Text, Image } from '@mantine/core';
+import { Stack, Text, Image, CloseButton } from '@mantine/core';
+import type { SpaceCartMadalType } from '../../types/SpaceCartMadal';
 
-interface LaunchDetailModalProps {
-  launch: {
-    mission_name: string;
-    launch_date_utc: string;
-    details: string | null;
-    links: {
-      mission_patch: string | null;
-    };
-    rocket: {
-      rocket_name: string;
-    };
-  };
+type SpaceCartMadalProps = {
+  spaceCard: SpaceCartMadalType;
+
   opened: boolean;
   onClose: () => void;
-}
+};
 
-export const LaunchDetailModal = ({
-  launch,
+export const SpaceCartMadal = ({
+  spaceCard,
   opened,
   onClose,
-}: LaunchDetailModalProps) => {
-  // Закрытие по нажатию Escape
-  useEffect(() => {
-    if (!opened) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [opened, onClose]);
-
-  // Если модалка не открыта — ничего не рендерим
+}: SpaceCartMadalProps) => {
   if (!opened) return null;
 
-  // Находим или создаём контейнер для портала
-  const modalRoot = document.getElementById('modal-root') || (() => {
-    const el = document.createElement('div');
-    el.id = 'modal-root';
-    document.body.appendChild(el);
-    return el;
-  })();
+  const modalRoot =
+    document.getElementById('modal-root') ||
+    (() => {
+      const el = document.createElement('div');
+      el.id = 'modal-root';
+      document.body.appendChild(el);
+      return el;
+    })();
 
-  // Обработчик клика по оверлею
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -73,7 +48,7 @@ export const LaunchDetailModal = ({
       onClick={handleOverlayClick}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
         style={{
           background: 'white',
           borderRadius: '20px',
@@ -83,45 +58,48 @@ export const LaunchDetailModal = ({
           maxHeight: '90vh',
           overflowY: 'auto',
           boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+          position: 'relative',
         }}
       >
-        {launch.links.mission_patch && (
-          <Image
-            src={launch.links.mission_patch}
-            alt={launch.mission_name}
-            fit="contain"
-            style={{ height: 160, marginBottom: '16px' }}
-          />
-        )}
+        <Text size="xl" fw={700}>
+          {spaceCard.mission_name}
+        </Text>
+        <CloseButton
+          onClick={onClose}
+          size="lg"
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 1002,
+          }}
+          aria-label="Close modal"
+        />
+
+        <Image
+          src={spaceCard.links.mission_patch_small}
+          alt={''}
+          fit="contain"
+          style={{ height: 160, marginBottom: '16px' }}
+        />
 
         <Stack gap="sm">
           <Text size="xl" fw={700}>
-            {launch.mission_name}
+            <strong>Mission name:</strong>
+          </Text>
+
+          <Text size="xl" fw={700}>
+            {spaceCard.mission_name}
           </Text>
 
           <Text>
-            <strong>Rocket:</strong> {launch.rocket.rocket_name}
-          </Text>
-
-          <Text>
-            <strong>Launch date:</strong>{' '}
-            {new Date(launch.launch_date_utc).toLocaleString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+            <strong>Rocket name:</strong> {spaceCard.rocket.rocket_name}
           </Text>
 
           <Text>
             <strong>Details:</strong>{' '}
-            {launch.details || 'No additional information available.'}
+            {spaceCard.details || 'No additional information available.'}
           </Text>
-
-          <Button fullWidth mt="md" onClick={onClose}>
-            Close
-          </Button>
         </Stack>
       </div>
     </div>,
