@@ -17,7 +17,7 @@ const SpaceCardList: React.FC<SpaceCardListProps> = ({
   const skeletonCount = 8;
 
   return (
-    <SimpleGrid cols={4} spacing="lg" mt="md">
+    <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="lg" mt="md">
       {loading
         ? Array.from({ length: skeletonCount }).map((_, index) => (
             <SpaceCartSkeleton key={`skeleton-${index}`} />

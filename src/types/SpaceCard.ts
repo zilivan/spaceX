@@ -7,4 +7,5 @@ export interface SpaceCardType {
   rocket: {
     rocket_name: string;
   };
+  details: string;
 }

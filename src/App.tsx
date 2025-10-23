@@ -1,7 +1,7 @@
 import { useReducer, useEffect } from 'react';
 import './App.css';
 import type { SpaceCardType } from './types/SpaceCard';
-import SpaceCardList from './components/spaseCardList/SpaceCardList';
+import SpaceCardList from './components/spaceCardList/SpaceCardList';
 import { AppShell, Title } from '@mantine/core';
 
 interface SpaceCardsState {

@@ -1,9 +1,9 @@
 import { createPortal } from 'react-dom';
 import { Stack, Text, Image, CloseButton } from '@mantine/core';
-import type { SpaceCartMadalType } from '../../types/SpaceCartMadal';
+import type { SpaceCardType } from '../../types/SpaceCard';
 
 type SpaceCartMadalProps = {
-  spaceCard: SpaceCartMadalType;
+  spaceCard: SpaceCardType;
 
   opened: boolean;
   onClose: () => void;
@@ -52,18 +52,15 @@ export const SpaceCartMadal = ({
         style={{
           background: 'white',
           borderRadius: '20px',
-          padding: '24px',
           maxWidth: '600px',
           width: '90%',
           maxHeight: '90vh',
-          overflowY: 'auto',
           boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
           position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        <Text size="xl" fw={700}>
-          {spaceCard.mission_name}
-        </Text>
         <CloseButton
           onClick={onClose}
           size="lg"
@@ -76,31 +73,43 @@ export const SpaceCartMadal = ({
           aria-label="Close modal"
         />
 
-        <Image
-          src={spaceCard.links.mission_patch_small}
-          alt={''}
-          fit="contain"
-          style={{ height: 160, marginBottom: '16px' }}
-        />
-
-        <Stack gap="sm">
-          <Text size="xl" fw={700}>
-            <strong>Mission name:</strong>
-          </Text>
-
+        <div
+          style={{
+            padding: '24px',
+            overflowY: 'auto',
+            maxHeight: 'calc(90vh - 24px)',
+          }}
+        >
           <Text size="xl" fw={700}>
             {spaceCard.mission_name}
           </Text>
 
-          <Text>
-            <strong>Rocket name:</strong> {spaceCard.rocket.rocket_name}
-          </Text>
+          <Image
+            src={spaceCard.links.mission_patch_small}
+            alt={''}
+            fit="contain"
+            style={{ height: 160, marginBottom: '16px' }}
+          />
 
-          <Text>
-            <strong>Details:</strong>{' '}
-            {spaceCard.details || 'No additional information available.'}
-          </Text>
-        </Stack>
+          <Stack gap="sm">
+            <Text size="xl" fw={700}>
+              <strong>Mission name:</strong>
+            </Text>
+
+            <Text size="xl" fw={700}>
+              {spaceCard.mission_name}
+            </Text>
+
+            <Text>
+              <strong>Rocket name:</strong> {spaceCard.rocket.rocket_name}
+            </Text>
+
+            <Text>
+              <strong>Details:</strong>{' '}
+              {spaceCard.details || 'No additional information available.'}
+            </Text>
+          </Stack>
+        </div>
       </div>
     </div>,
     modalRoot

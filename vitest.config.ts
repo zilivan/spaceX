@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     // <-- Теперь 'test' известен как опция Vitest
+
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
